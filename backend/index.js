@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const connection = require('./configs/connection');  // Import your database connection setup
+const usersRoutes = require('./routers/users.routes');
 
 class Server {
     constructor() {
@@ -11,12 +12,32 @@ class Server {
 
         this.setMiddleware();  // Set up middleware
         this.startServer();  // Start the server
+        this.handleRouters(); // Handle routes
     }
 
     setMiddleware() {
         this.app.use(express.json());  // Parse JSON request bodies
         this.app.use(cors());  // Enable CORS
         this.app.use(cookieParser());  // Parse cookies in the request
+    }
+
+    async handleWelcome(req, res) {
+        try {
+            return res.status(200).json({
+                status: true,
+                message: "Welcome to the Companies CRM."
+            })
+        } catch (err) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + err.message
+            })
+        }
+    }
+
+    handleRouters() {
+        this.app.get('/', this.handleWelcome.bind(this));
+        this.app.use('/users', usersRoutes)
     }
 
     async startServer() {
