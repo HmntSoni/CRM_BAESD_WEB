@@ -87,6 +87,7 @@ class User_Controller {
             });
         }
     }
+
     static async passwordReset(req, res) {
         try {
             const { oldPassword, newPassword, rewritePassword } = req.body;
@@ -126,6 +127,178 @@ class User_Controller {
         }
     }
 
+    // Self Update 
+    static async updateUserDetails(req, res) {
+        try {
+            const id = req.userID;
+            const { firstName, lastName, email, phoneNumber, address } = req.body;
+
+            const userDetails = await usersModel.findById(id);
+
+            // Update user details if the fields are provided
+            if (firstName) {
+                userDetails.firstName = firstName;
+            }
+            if (lastName) {
+                userDetails.lastName = lastName;
+            }
+            if (email) {
+                userDetails.email = email;
+            }
+            if (phoneNumber) {
+                userDetails.phoneNumber = phoneNumber;
+            }
+            if (address) {
+                userDetails.address = address;
+            }
+
+            // Save the updated user details
+            await userDetails.save();
+
+            return res.status(200).json({
+                status: true,
+                message: 'User details updated successfully',
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
+
+    // Self Delete
+    static async deleteUser(req, res) {
+        try {
+            await usersModel.findByIdAndDelete(req.userID);
+            res.clearCookie('token');
+
+            return res.status(200).json({
+                status: true,
+                message: 'User deleted successfully',
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
+
+    // Admin Removes a User
+    static async deleteUserByAdmin(req, res) {
+        try {
+            const id = req.params.id;
+            await usersModel.findByIdAndDelete(id);
+
+            return res.status(200).json({
+                status: true,
+                message: 'User deleted successfully',
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
+
+    //Update user details by Admin
+    static async updateUserDetailsByAdmin(req, res) {
+        try {
+            const id = req.params.id;
+            const { firstName, lastName, email, password, role, designation, phoneNumber, address } = req.body;
+
+            const userDetails = await usersModel.findById(id);
+
+            // Update user details if the fields are provided
+            if (firstName) {
+                userDetails.firstName = firstName;
+            }
+
+            if (lastName) {
+                userDetails.lastName = lastName;
+            }
+
+            if (email) {
+                userDetails.email = email;
+            }
+
+            if (password) {
+                userDetails.password = await bcrypt.hash(password, 6);
+            }
+
+            if (role) {
+                userDetails.role = role;
+            }
+
+            if (designation) {
+                userDetails.designation = designation;
+            }
+
+            if (phoneNumber) {
+                userDetails.phoneNumber = phoneNumber;
+            }
+
+            if (address) {
+                userDetails.address = address;
+            }
+
+            // Save the updated user details
+            await userDetails.save();
+
+            return res.status(200).json({
+                status: true,
+                message: 'User details updated successfully',
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
+
+    static async fetchingOtherUsers(req, res) {
+        try {
+            const userDetails = await usersModel.findById(req.userID);
+
+            if (userDetails.role === 'super-admin') {
+                // Super-admin can see all users except other super-admins
+                const data = await usersModel.find({ role: { $ne: 'super-admin' } });
+                return res.status(200).json({
+                    data: data,
+                    count: data.length,
+                });
+            } else if (userDetails.role === 'admin') {
+                // Admins can see all users except super-admins and other admins
+                const data = await usersModel.find({ role: { $nin: ['super-admin', 'admin'] } });
+                return res.status(200).json({
+                    data: data,
+                    count: data.length,
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
+
+    static async fetchingMyAccountDetails(req, res) {
+        try {
+            return res.status(200).json({
+                message: 'Your account details',
+                data: await usersModel.findById(req.userID),
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
 }
 
 module.exports = User_Controller;
