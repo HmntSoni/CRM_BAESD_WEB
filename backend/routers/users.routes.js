@@ -1,5 +1,6 @@
 const express = require('express');
 const User_Controller = require('../controllers/users.controller');
+const authentication = require('../middleware/authentication.middleware');
 
 class User_Router {
     constructor() {
@@ -11,6 +12,7 @@ class User_Router {
     initializeRoutes() {
         this.router.post('/register', User_Controller.registeringUser);
         this.router.post('/login', User_Controller.loggingUser);
+        this.router.post('/reset-password', authentication, User_Controller.passwordReset);
     }
 
     getRouter() {

@@ -4,6 +4,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const connection = require('./configs/connection');  // Import your database connection setup
 const usersRoutes = require('./routers/users.routes');
+const authentication = require('./middleware/authentication.middleware');
 
 class Server {
     constructor() {

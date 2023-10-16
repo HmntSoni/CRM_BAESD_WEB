@@ -87,6 +87,45 @@ class User_Controller {
             });
         }
     }
+    static async passwordReset(req, res) {
+        try {
+            const { oldPassword, newPassword, rewritePassword } = req.body;
+
+            const userDetails = await usersModel.findById(req.userID);
+
+            bcrypt.compare(oldPassword, userDetails.password, async (err, result) => {
+
+                if (result) {
+                    if (newPassword === rewritePassword) {
+                        const hashedPassword = await bcrypt.hash(newPassword, 10);
+                        userDetails.password = hashedPassword;
+                        await userDetails.save();
+
+                        return res.status(200).json({
+                            status: true,
+                            message: 'Password updated successfully',
+                        });
+                    } else {
+                        return res.status(400).json({
+                            status: false,
+                            message: 'New password and rewrite password do not match',
+                        });
+                    }
+                } else {
+                    return res.status(401).json({
+                        status: false,
+                        message: 'Old password is incorrect',
+                    });
+                }
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
+
 }
 
 module.exports = User_Controller;
