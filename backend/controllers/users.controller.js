@@ -189,12 +189,23 @@ class User_Controller {
     static async deleteUserByAdmin(req, res) {
         try {
             const id = req.params.id;
-            await usersModel.findByIdAndDelete(id);
 
-            return res.status(200).json({
-                status: true,
-                message: 'User deleted successfully',
-            });
+            const userDetails = await usersModel.findById(req.userID);
+            if (userDetails.role === "admin") {
+                const requiredUser = await usersModel.findById(id);
+                requiredUser.deleteUserByAdmin = true;
+                await requiredUser.save();
+                return res.status(200).json({
+                    status: true,
+                    message: 'User deleted successfully but awaiting the super-admins approval',
+                });
+            } else {
+                await usersModel.findByIdAndDelete(id);
+                return res.status(200).json({
+                    status: true,
+                    message: 'User deleted successfully',
+                });
+            }
         } catch (error) {
             return res.status(500).json({
                 status: false,
