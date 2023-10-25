@@ -19,6 +19,7 @@ class User_Router {
         this.router.patch('/update-users/:id', authentication, User_Controller.updateUserDetailsByAdmin);
         this.router.delete('/delete', authentication, User_Controller.deleteUser);
         this.router.delete('/delete-users/:id', authentication, User_Controller.deleteUserByAdmin);
+        this.router.get('/delete-request-admin', authentication, User_Controller.deleteUserRequestFromAdmin);
     }
 
     getRouter() {

@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 class User_Controller {
     static async registeringUser(req, res) {
         try {
-            const { firstName, lastName, email, password, role, designation, phoneNumber, address } = req.body;
+            const { firstName, lastName, email, password, role, designation, phoneNumber, address, permissions } = req.body;
 
             // Check if the user already exists by email
             const existingUser = await usersModel.findOne({ email });
@@ -32,6 +32,7 @@ class User_Controller {
                 designation,
                 phoneNumber,
                 address,
+                permissions
             });
 
             // Save the new user to the database
@@ -218,7 +219,7 @@ class User_Controller {
     static async updateUserDetailsByAdmin(req, res) {
         try {
             const id = req.params.id;
-            const { firstName, lastName, email, password, role, designation, phoneNumber, address } = req.body;
+            const { firstName, lastName, email, password, role, designation, phoneNumber, address, permissions } = req.body;
 
             const userDetails = await usersModel.findById(id);
 
@@ -253,6 +254,10 @@ class User_Controller {
 
             if (address) {
                 userDetails.address = address;
+            }
+
+            if (permissions) {
+                userDetails.permissions = permissions;
             }
 
             // Save the updated user details
@@ -310,6 +315,24 @@ class User_Controller {
             });
         }
     }
+
+    static async deleteUserRequestFromAdmin(req, res) {
+        try {
+            const data = await usersModel.find({ deleteUserByAdmin: true });
+            return res.status(200).json({
+                status: true,
+                message: 'Needs permission from Super-Admin.',
+                data: data,
+                count: data.count
+            })
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Error: ' + error.message,
+            });
+        }
+    }
+
 }
 
 module.exports = User_Controller;
